@@ -54,6 +54,7 @@ SOFTWARE.
 
 STAG(age);
 STAG(all);
+STAG(artNet);
 STAG(autoOff);
 STAG(bin);
 STAG(board)

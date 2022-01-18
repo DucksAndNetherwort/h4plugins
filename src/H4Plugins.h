@@ -32,6 +32,7 @@
 #include<H4P_ToneController.h>
 #include<H4P_UPNPServer.h>
 #include<H4P_WiFi.h>
+#include<H4P_ArtNetServer.h>
 
 #include<h4proxy.h>
 
