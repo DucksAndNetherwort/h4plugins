@@ -39,17 +39,17 @@ class H4P_ArtNetServer: public H4Service {
             IPAddress		    _ubIP=IPAddress(239,255,255,250);
 
         virtual void            _handleEvent(const std::string& svc,H4PE_TYPE t,const std::string& msg) override;
-                void            _handlePacket(std::string p,IPAddress ip,uint16_t port);
+                void            _handlePacket(std::string packet,IPAddress ip);
                 void            _listenUDP();
-                void            _artPoll(IPAddress ip, IPAddress pollIp);
-                void            _artDmx(uint8_t packet[]);
+                void            _artPoll(IPAddress pollIp, std::string pollPacket);
+                void            _artDmx(std::string packet);
                 //void            _notify(const std::string& s);
 
         //static  std::string     replaceParamsFile(const std::string &f){ return h4preplaceparams(CSTR(H4P_SerialCmd::read(f))); }
     public:                
         H4P_ArtNetServer(const std::string& name=""): H4Service(artNetTag(),H4PE_GVCHANGE|H4PE_VIEWERS){
-            /*_pWiFi=depend<H4P_WiFi>(wifiTag());
-            if(!h4p.gvExists(nameTag())) h4p.gvSetstring(nameTag(),(name=="") ? (uppercase(h4Tag())+" "+deviceTag()+" "+std::string(h4p[chipTag()])):name,true);
+            //_pWiFi=depend<H4P_WiFi>(wifiTag());
+            /*if(!h4p.gvExists(nameTag())) h4p.gvSetstring(nameTag(),(name=="") ? (uppercase(h4Tag())+" "+deviceTag()+" "+std::string(h4p[chipTag()])):name,true);
             XLOG("UPNP name %s",CSTR(h4p[nameTag()]));*/
         }
 //               void            friendlyName(const std::string& name){ h4p[nameTag()]=name; }
