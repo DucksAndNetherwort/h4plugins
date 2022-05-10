@@ -120,6 +120,7 @@ enum H4PE_TYPE:uint32_t {
     H4PE_GRID      = 1 << 22,
     H4PE_UPNP      = 1 << 23,
     H4PE_UIMSG     = 1 << 24,
+    H4PE_ARTDMX    = 1 << 25,
     H4PE_HEARTBEAT = 0x80000000,
     H4PE_ALL       = 0xffffffff,
     H4PE_ALMOST_ALL= H4PE_ALL &~ H4PE_HEARTBEAT
@@ -229,7 +230,8 @@ enum trustedIds {
     H4P_TRID_D6,
     H4P_TRID_D7,
     H4P_TRID_D8,
-    H4P_TRID_D9
+    H4P_TRID_D9,
+    H4P_TRID_ARTD
 };
 
 enum H4PC_CMD_ID {
