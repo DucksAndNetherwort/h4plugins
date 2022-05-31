@@ -105,6 +105,14 @@ class H4P_ArtNetServer: public H4Service {
 			pollReplyPacket.Status2 = 0b00000010; //status2
 			startChannel = start - 1;
 			channelCount = count;
+			dmxData = (uint8_t*) malloc(channelCount * sizeof(uint8_t));
+			if (!dmxData) {
+				h4psysevent(artNetTag(), H4PE_SYSFATAL, "malloc failed", 0);
+			}
+		}
+
+		~H4P_ArtNetServer() {
+			free(dmxData);
 		}
 
 		H4P_ArtNetServer(uint16_t dmxStartChannel, uint16_t numChannels): H4Service(artNetTag(),H4PE_GVCHANGE|H4PE_VIEWERS) {
@@ -121,6 +129,8 @@ class H4P_ArtNetServer: public H4Service {
 			_Construct(shortName, longName, dmxStartChannel, numChannels);
 		}
 
+		uint8_t GetChannel(uint16_t channel);
+
 				static std::string decodeDmx(std::string data);
 				void           svcUp() override;
 				void           svcDown() override;
@@ -129,4 +139,7 @@ class H4P_ArtNetServer: public H4Service {
 				#endif
 //          _syscall only
 				void           _init() override;
+
+				private:
+				uint8_t* dmxData;
 };

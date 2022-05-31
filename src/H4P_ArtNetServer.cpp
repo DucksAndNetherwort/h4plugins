@@ -69,17 +69,7 @@ void H4P_ArtNetServer::_artPoll(IPAddress pollIp, std::string pollPacket) { //re
 void H4P_ArtNetServer::_artDmx(const std::string* packet) { //process artdmx
 	//Serial.println("dmx");
 	std::string dmx((*packet), startChannel + 18, channelCount); //transfer needed channels to a string
-	std::string encoded(channelCount * 2, 0);
-	for(int i = 0; i < channelCount; i++) {
-		if(dmx[i] == 0) {
-			encoded[i] ='A';
-			encoded[i + channelCount] = 'A';
-		}
-		else {
-			encoded[i] = dmx[i];
-			encoded[i + channelCount] = 'B';
-		}
-	}
+	memcpy(dmxData, dmx.data(), channelCount * sizeof(uint8_t));
 	/*std::string dmx;
 	for(int i = 0; i < channelCount; i++) dmx[i] = (*packet)[i + 18];*/
 	//const std::string dmx(((*packet).data() + 18), 2); //transfer needed channels to a string
@@ -92,32 +82,12 @@ void H4P_ArtNetServer::_artDmx(const std::string* packet) { //process artdmx
 	//int bytesSent = Serial.write((*(*packet).data()));
 	//Serial.println((*packet).size());
 	//for(int i = 0; i < channelCount; i++) Serial.print((*packet)[i + 18], HEX);
-	Serial.println("start");
-	for(int i = 0; i < channelCount * 2; i++) {
-		Serial.print(encoded[i], HEX);
-		Serial.print(", ");
-	}
-	Serial.println();
-	Serial.println("number of channels: ");
-	Serial.println(encoded.size());
-	//Serial.println("bytes sent");
-	//Serial.println(dmx[0], HEX);
 
-	h4psysevent(artNetTag(), H4PE_ARTDMX, encoded, 0); //send event with requested channels
+	h4psysevent(artNetTag(), H4PE_ARTDMX, "", 0); //send event with requested channels
 }
 
-std::string decodeDmx(std::string data) {
-	int channels = data.length() / 2;
-	std::string output(channels, 0);
-	for(int i = 0; i < channels; i++) {
-		if(data[i + channels] == 'A') {
-			output[i] = 0;
-		}
-		else {
-			output[i] = data[i];
-		}
-	}
-	return(output);
+uint8_t H4P_ArtNetServer::GetChannel(uint16_t channel) {
+	return(dmxData[channel]);
 }
 
 void H4P_ArtNetServer::_listenUDP(){ //set up udp listening
@@ -146,12 +116,14 @@ void H4P_ArtNetServer::info(){ //info stuffs
 #endif
 
 void H4P_ArtNetServer::svcDown(){ //sudo shutdown -h now
+	Serial.println("service down");
 	//h4.cancelSingleton(H4P_TRID_NTFY);
 	_udp.close(); //close the udp port
 	H4Service::svcDown(); //tell h4 I've finished shutting down. I think
 }
 
 void H4P_ArtNetServer::svcUp(){ //bootup
+	Serial.println("service up");
 #if H4P_USE_WIFI_AP
 	if(WiFi.getMode()==WIFI_AP) return;
 #endif
