@@ -1,12 +1,8 @@
 /*
  MIT License
 
-Copyright (c) 2020 Phil Bowles <H48266@gmail.com>
-   github     https://github.com/philbowles/H4
-   blog       https://8266iot.blogspot.com
-   groups     https://www.facebook.com/groups/esp8266questions/
-			  https://www.facebook.com/H4-Esp8266-Firmware-Support-2338535503093896/
-
+Copyright (c) 2022 Ducks And Netherwort <ducks.and.netherwort@gmail.com>
+   github     https://github.com/DucksAndNetherwort
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -86,9 +82,7 @@ class H4P_ArtNetServer: public H4Service {
 				void            _listenUDP();
 				void            _artPoll(IPAddress pollIp, std::string pollPacket);
 				void            _artDmx(const std::string* packet);
-				//void            _notify(const std::string& s);
 
-		//static  std::string     replaceParamsFile(const std::string &f){ return h4preplaceparams(CSTR(H4P_SerialCmd::read(f))); }
 	public:
 
 		AN_pollReply_t pollReplyPacket; //get a poll reply packet
@@ -118,10 +112,7 @@ class H4P_ArtNetServer: public H4Service {
 		H4P_ArtNetServer(uint16_t dmxStartChannel, uint16_t numChannels): H4Service(artNetTag(),H4PE_GVCHANGE|H4PE_VIEWERS) {
 			std::string chipId = h4p.gvGetstring(chipTag());
 			std::string shortName =  "H4P " + chipId;
-			//strcpy(pollReplyPacket.ShortName, shortName.c_str());
 			std::string longName = "H4Plugins ArtNet receiver on ESP8266";
-			//strcpy(pollReplyPacket.LongName, longName.c_str());
-			//H4P_ArtNetServer(shortName.c_str(), longName.c_str());
 			_Construct(shortName.c_str(), longName.c_str(), dmxStartChannel, numChannels);
 		}
 
@@ -141,5 +132,5 @@ class H4P_ArtNetServer: public H4Service {
 				void           _init() override;
 
 				private:
-				uint8_t* dmxData;
+				uint8_t* dmxData; //potentially dangerous
 };

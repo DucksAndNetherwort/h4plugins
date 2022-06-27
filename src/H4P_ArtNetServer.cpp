@@ -1,12 +1,8 @@
 /*
  MIT License
 
-Copyright (c) 2020 Phil Bowles <h4plugins@gmail.com>
-   github     https://github.com/philbowles/esparto
-   blog       https://8266iot.blogspot.com     
-   groups     https://www.facebook.com/groups/esp8266questions/
-			  https://www.facebook.com/Esparto-Esp8266-Firmware-Support-2338535503093896/
-							  
+Copyright (c) 2022 Ducks And Netherwort <ducks.and.netherwort@gmail.com>
+   github     https://github.com/DucksAndNetherwort
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +28,7 @@ SOFTWARE.
 
 const uint16_t artPort = 6454; //artnet port
 
-void H4P_ArtNetServer::_handleEvent(const std::string& svc,H4PE_TYPE t,const std::string& msg){
+void H4P_ArtNetServer::_handleEvent(const std::string& svc,H4PE_TYPE t,const std::string& msg){ //event handler
 	switch(t){
 		case H4PE_VIEWERS:
 			{
@@ -47,22 +43,10 @@ void H4P_ArtNetServer::_handleEvent(const std::string& svc,H4PE_TYPE t,const std
 				}
 			}
 			break;
-/*        case H4PE_GVCHANGE:
-			if(_running && svc==nameTag()){
-//            if(svc==nameTag()){
-				svcDown(); // shut down old name, send bye bye etc
-				svcUp();
-			}*/
 	}
 }
 
 void H4P_ArtNetServer::_artPoll(IPAddress pollIp, std::string pollPacket) { //reply to artpoll
-	Serial.println("pollreply");
-	//IPAddress lIp;
-	//lIp.fromString(h4p.gvGetstring(ipTag()).c_str());
-	//for(int i = 0; i < 4; i++) pollReplyPacket.IpAddress[i] = lIp[i];
-	//for(int i = 0; i < 4; i++) pollReplyPacket.BindIp[i] = lIp[i];
-
 	_udp.writeTo((uint8_t *)&pollReplyPacket, 214, pollIp, artPort); //send the packet
 }
 
@@ -70,30 +54,17 @@ void H4P_ArtNetServer::_artDmx(const std::string* packet) { //process artdmx
 	//Serial.println("dmx");
 	std::string dmx((*packet), startChannel + 18, channelCount); //transfer needed channels to a string
 	memcpy(dmxData, dmx.data(), channelCount * sizeof(uint8_t));
-	/*std::string dmx;
-	for(int i = 0; i < channelCount; i++) dmx[i] = (*packet)[i + 18];*/
-	//const std::string dmx(((*packet).data() + 18), 2); //transfer needed channels to a string
-	//for(int i = 0; i < (channelCount + 1); i++) dmx[i] = (*packet)[i + (18 + channelOffset)];
-	//analogWrite(0, 255 - dmx[0]);
-	//Serial.print("strlen: ");
-	//Serial.println(dmx.length());
-	//Serial.println("channelcount");
-	//Serial.println(channelCount);
-	//int bytesSent = Serial.write((*(*packet).data()));
-	//Serial.println((*packet).size());
-	//for(int i = 0; i < channelCount; i++) Serial.print((*packet)[i + 18], HEX);
-
-	h4psysevent(artNetTag(), H4PE_ARTDMX, "", 0); //send event with requested channels
+	h4psysevent(artNetTag(), H4PE_ARTDMX, "", 0); //send event
 }
 
-uint8_t H4P_ArtNetServer::GetChannel(uint16_t channel) {
+uint8_t H4P_ArtNetServer::GetChannel(uint16_t channel) { //return selected channel's contents
 	return(dmxData[channel]);
 }
 
 void H4P_ArtNetServer::_listenUDP(){ //set up udp listening
-	if(!_udp.listenMulticast(_ubIP, artPort)) return; // some kinda error?
+	if(!_udp.listenMulticast(_ubIP, artPort)) return;
 	_udp.onPacket([this](AsyncUDPPacket packet){ //this is the callback for processing udp
-		//Serial.println("pkt");
+		//Serial.println("pkt"); //can be uncommented to check if udp is coming through. Will probably lag everything out
 		std::string pkt((const char*)packet.data(),packet.length()); //make a std::string with packet contents
 		IPAddress ip = packet.remoteIP(); //extract remote ip address
 
@@ -104,26 +75,39 @@ void H4P_ArtNetServer::_listenUDP(){ //set up udp listening
 }
 
 void H4P_ArtNetServer::_init(){ //initialization
-	//pinMode(0, OUTPUT); //set onboard led pin to output
-	//analogWriteRange(255); //set the analog write range to 8-bit
 }
 
 #if H4P_LOG_MESSAGES
 void H4P_ArtNetServer::info(){ //info stuffs
 	H4Service::info(); //tell h4 I'm sending info. I think.
-    reply(" ShortName: %s\n LongName: %s", pollReplyPacket.ShortName, pollReplyPacket.LongName); //actually send the info
+
+    reply(" ShortName: %s", pollReplyPacket.ShortName); //actually send the info
+	reply(" LongName: %s", pollReplyPacket.LongName);
+	char * buffer = (char*)malloc(int((log10((startChannel > channelCount) ? startChannel : channelCount) < 3) ? 3 : log10((startChannel > channelCount) ? startChannel : channelCount) + 1)); //allocate the bare minimum of memory to fit either one
+	if (!buffer) {
+		Serial.println("malloc failed for integer string conversion buffer. Firing H4PE_SYSFATAL");
+		h4psysevent(artNetTag(), H4PE_SYSFATAL, "malloc failed", 0);
+	}
+	itoa(startChannel, buffer, 10); //make it a string
+	reply(" Start Channel: %s", buffer); //send it
+	itoa(channelCount, buffer, 10); //make it a string
+	reply(" Channel Count: %s", buffer); //send it
+	for(int i = 0; i < channelCount; i++) { //send channel data
+		itoa(i + 1, buffer, 10);
+		reply(" channel %s:", buffer);
+		itoa(dmxData[i], buffer, 10);
+		reply(" %s", buffer);
+	}
+	free(buffer); //free all 4 bytes
 }
 #endif
 
-void H4P_ArtNetServer::svcDown(){ //sudo shutdown -h now
-	Serial.println("service down");
-	//h4.cancelSingleton(H4P_TRID_NTFY);
+void H4P_ArtNetServer::svcDown(){ //sudo service artNet stop
 	_udp.close(); //close the udp port
-	H4Service::svcDown(); //tell h4 I've finished shutting down. I think
+	H4Service::svcDown(); //tell h4 I've finished shutting down. I think.
 }
 
 void H4P_ArtNetServer::svcUp(){ //bootup
-	Serial.println("service up");
 #if H4P_USE_WIFI_AP
 	if(WiFi.getMode()==WIFI_AP) return;
 #endif
